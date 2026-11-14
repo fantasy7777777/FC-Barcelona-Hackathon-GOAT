@@ -1,0 +1,52 @@
+# Competition data: keep all raw assets and data bundles out of Git.
+/data/*
+!/data/README.md
+BAR-ATH_tactical*
+BAR-ATH_broadcast*
+*.mp4
+*.pl3container
+*.gzip
+*.zip
+
+# Private/derived ground truth and full-match labels.
+*_possession_gt.csv
+*_possession_gt_meta.json
+*_possession_gt_reference.csv
+possession_by_frame.pkl
+
+# Generated submissions and analysis outputs. Keep code and README notes tracked.
+/outputs/*
+!/outputs/README.md
+/reports/*
+!/reports/README.md
+/evaluation/results/*.csv
+!/evaluation/results/baseline_*.csv
+/evaluation/reports/
+evaluation/scoreboard.csv
+
+# Local data/configuration paths and credentials.
+.env
+.env.*
+!.env.example
+local_paths.*
+
+# Vendored challenge repo should be cloned separately and versioned deliberately.
+/vendor/
+
+# Python environments, caches, and build artifacts.
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+build/
+dist/
+
+# Editor / operating system files.
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
