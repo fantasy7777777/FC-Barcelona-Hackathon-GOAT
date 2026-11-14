@@ -100,6 +100,7 @@
         </select>
       </label>
     </div>
+    <p class="hint">Keyboard: ← / → seeks 5 seconds. Arrow keys are left alone while editing a field or using the timeline slider.</p>
     <div class="window-row">
       <label for="windowInput">Smoothing half-window (frames)</label>
       <input id="windowInput" type="number" min="0" max="500" step="1" value="50">
@@ -413,6 +414,12 @@ self.onmessage = async (event) => {
   els.play.addEventListener('click',()=>playing?stopPlayback():startPlayback());
   els.rewind.addEventListener('click',()=>seekBySeconds(-5));
   els.forward.addEventListener('click',()=>seekBySeconds(5));
+  window.addEventListener('keydown',(event)=>{
+    if(event.altKey||event.ctrlKey||event.metaKey||event.shiftKey)return;
+    if(event.target.closest('input,select,textarea,video,[contenteditable="true"]'))return;
+    if(event.key==='ArrowLeft'){event.preventDefault();seekBySeconds(-5);}
+    else if(event.key==='ArrowRight'){event.preventDefault();seekBySeconds(5);}
+  });
   els.speed.addEventListener('change',()=>{if(els.videoPlayer.src)els.videoPlayer.playbackRate=Number(els.speed.value);});
   els.timeline.addEventListener('click',(event)=>{
     const rect=els.timeline.getBoundingClientRect(),ratio=Math.max(0,Math.min(1,(event.clientX-rect.left)/rect.width));
@@ -434,6 +441,10 @@ self.onmessage = async (event) => {
     if(videoUrl)URL.revokeObjectURL(videoUrl);
     const file=els.video.files[0];if(!file)return;
     videoUrl=URL.createObjectURL(file);els.videoPlayer.src=videoUrl;els.videoPlayer.style.display='block';
+  });
+  els.videoPlayer.addEventListener('loadedmetadata',()=>{
+    if(!positions)return;
+    els.videoPlayer.currentTime=Math.min(els.videoPlayer.duration,currentFrame/FPS);
   });
   els.videoPlayer.addEventListener('timeupdate',()=>{
     if(!positions)return;const frame=Math.max(0,Math.min(N-1,Math.floor(els.videoPlayer.currentTime*FPS)));
