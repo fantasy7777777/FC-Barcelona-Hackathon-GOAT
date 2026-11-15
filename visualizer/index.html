@@ -38,7 +38,10 @@
     .small-button{background:#e8eef0;color:var(--ink);padding:7px 11px}
     .metrics{display:flex;gap:18px;flex-wrap:wrap;margin-top:12px;color:var(--muted);font-size:.88rem}
     .metrics strong{color:var(--ink);font-variant-numeric:tabular-nums}
-    .grid{display:none;grid-template-columns:minmax(0,1.15fr) minmax(300px,.85fr);gap:18px;align-items:start}
+    .grid{display:none;grid-template-columns:minmax(0,1.15fr) minmax(340px,.85fr);grid-template-areas:"timeline video" "pitch video";gap:14px;align-items:start}
+    .timeline-panel{grid-area:timeline}
+    .pitch-panel{grid-area:pitch}
+    .video-panel{grid-area:video}
     .panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;min-width:0}
     canvas{display:block;width:100%;height:auto}
     #timeline{height:96px;cursor:crosshair;touch-action:manipulation}
@@ -49,10 +52,13 @@
     .swatch{width:12px;height:12px;border-radius:3px;display:inline-block}
     .frame-info{display:flex;justify-content:space-between;gap:12px;align-items:center;margin:12px 0 0}
     .label-chip{font-weight:700;padding:5px 10px;border-radius:6px;background:#edf0f2}
-    video{display:none;width:100%;margin-top:14px;border-radius:8px;background:#111}
+    video{display:none;width:100%;aspect-ratio:16/9;object-fit:contain;margin-top:12px;border-radius:8px;background:#111}
+    .video-placeholder{display:flex;align-items:center;justify-content:center;aspect-ratio:16/9;margin-top:12px;padding:18px;border:1px dashed var(--line);border-radius:8px;background:#f5f7f8;color:var(--muted);text-align:center;font-size:.88rem}
+    .video-placeholder[hidden]{display:none}
     .explain{font-size:.87rem;line-height:1.5;margin-top:12px}
     .disclaimer{font-size:.8rem;margin-top:12px}
     .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+    @media(max-width:1080px){.grid{grid-template-columns:minmax(0,1fr);grid-template-areas:"timeline" "pitch" "video"}}
     @media(max-width:760px){main{padding:20px 14px 36px}.setup-grid,.grid{grid-template-columns:1fr}.panel{padding:13px}.range-row{grid-template-columns:1fr;gap:5px}#timeline{height:72px}}
   </style>
 </head>
@@ -111,7 +117,7 @@
   </section>
 
   <section id="visuals" class="grid" aria-label="Possession visualizations">
-    <div class="panel">
+    <div class="panel timeline-panel">
       <h2>Predicted possession timeline</h2>
       <canvas id="timeline" role="img" aria-label="Timeline colored by predicted home possession, away possession, or dead ball"></canvas>
       <div class="axis"><span>0:00</span><span>Match time (video time)</span><span>~2:13:00</span></div>
@@ -122,7 +128,7 @@
       </div>
       <p class="explain">Click the timeline or move the slider to inspect any frame. Each stripe summarizes a small block of frames.</p>
     </div>
-    <div class="panel">
+    <div class="panel pitch-panel">
       <h2>Tracked positions on the pitch</h2>
       <canvas id="pitch" role="img" aria-label="Top-down pitch showing tracked players and ball"></canvas>
       <div class="frame-info"><span id="frameDetail">Load tracking to inspect a frame.</span><span class="label-chip" id="labelChip">X</span></div>
@@ -131,11 +137,16 @@
         <span class="key"><i class="swatch" style="background:var(--away)"></i>Away track</span>
         <span class="key"><i class="swatch" style="background:var(--ball)"></i>Ball</span>
       </div>
-      <label style="margin-top:14px">Optional tactical video (large file; playback only)
+      <p class="disclaimer">Track slots are not stable player identities. Nearest-player predictions can be wrong during loose balls, duels, and missing-ball stretches.</p>
+    </div>
+    <div class="panel video-panel">
+      <h2>Tactical video</h2>
+      <label>Optional video for visual comparison
         <input id="videoFile" type="file" accept="video/mp4">
       </label>
+      <div class="video-placeholder" id="videoPlaceholder">Choose the tactical match video to compare it with the synchronized tracking view. Playback is optional.</div>
       <video id="matchVideo" controls preload="metadata"></video>
-      <p class="disclaimer">Track slots are not stable player identities. Nearest-player predictions can be wrong during loose balls, duels, and missing-ball stretches.</p>
+      <p class="disclaimer">Large file; playback only. The video is selected locally and is not uploaded.</p>
     </div>
   </section>
 
@@ -236,7 +247,7 @@ self.onmessage = async (event) => {
     current:$('currentLabel'), window:$('windowInput'), apply:$('applyWindow'), download:$('downloadCsv'),
     play:$('playButton'), rewind:$('rewindButton'), forward:$('forwardButton'), speed:$('playSpeed'),
     metrics:$('metrics'), timeline:$('timeline'), pitch:$('pitch'), detail:$('frameDetail'),
-    chip:$('labelChip'), videoPlayer:$('matchVideo')
+    chip:$('labelChip'), videoPlayer:$('matchVideo'), videoPlaceholder:$('videoPlaceholder')
   };
   let positions = null, ballX = null, ballY = null, raw = null, teams = null, teamNames = ['Barcelona','Athletic Club'];
   let predictions = null, currentFrame = 0, videoUrl = null, playing = false, playRequest = 0, lastTick = null, frameRemainder = 0;
@@ -322,12 +333,12 @@ self.onmessage = async (event) => {
     for(let slot=0;slot<nTracks;slot++){
       const off=(currentFrame*nTracks+slot)*2,px=positions[off],py=positions[off+1];
       if(!Number.isFinite(px)||!Number.isFinite(py))continue;
-      const cx=x0+px*(x1-x0),cyy=y1-py*(y1-y0),r=slot===nearestSlot?5.5:3.4;
+      const cx=x0+px*(x1-x0),cyy=y0+py*(y1-y0),r=slot===nearestSlot?5.5:3.4;
       ctx.beginPath();ctx.arc(cx,cyy,r,0,Math.PI*2);ctx.fillStyle=teams[slot]===HOME?colors.H:colors.A;ctx.fill();
       if(slot===nearestSlot){ctx.beginPath();ctx.arc(cx,cyy,r+3,0,Math.PI*2);ctx.strokeStyle='#fff';ctx.lineWidth=1.4;ctx.stroke();}
     }
     if(Number.isFinite(bx)&&Number.isFinite(by)){
-      const cx=x0+bx*(x1-x0),cyy=y1-by*(y1-y0);ctx.beginPath();ctx.arc(cx,cyy,5,0,Math.PI*2);ctx.fillStyle='#f0b429';ctx.fill();ctx.strokeStyle='#18212a';ctx.lineWidth=1;ctx.stroke();
+      const cx=x0+bx*(x1-x0),cyy=y0+by*(y1-y0);ctx.beginPath();ctx.arc(cx,cyy,5,0,Math.PI*2);ctx.fillStyle='#f0b429';ctx.fill();ctx.strokeStyle='#18212a';ctx.lineWidth=1;ctx.stroke();
     }
   }
   function renderFrame(seekVideo=true){
@@ -440,7 +451,7 @@ self.onmessage = async (event) => {
   els.video.addEventListener('change',()=>{
     if(videoUrl)URL.revokeObjectURL(videoUrl);
     const file=els.video.files[0];if(!file)return;
-    videoUrl=URL.createObjectURL(file);els.videoPlayer.src=videoUrl;els.videoPlayer.style.display='block';
+    videoUrl=URL.createObjectURL(file);els.videoPlayer.src=videoUrl;els.videoPlayer.style.display='block';els.videoPlaceholder.hidden=true;
   });
   els.videoPlayer.addEventListener('loadedmetadata',()=>{
     if(!positions)return;
