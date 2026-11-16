@@ -1,35 +1,25 @@
-# More Than A Hack 2027 — Phase 1
+# GOAT — More Than A Hack 2027
 
-Local working repository for the frame-level possession challenge. The authorized match data remains in the parent folder `E:\Download\Hackathon` and is intentionally not copied here.
+GOAT's Phase 1 submission project for frame-level football possession classification.
 
-## Challenge in brief
+## Current method
 
-Produce one `frame,label` row for each of 199,319 tactical-video frames. Labels: `H` (Barcelona possession, ball live), `A` (Athletic Club possession, ball live), `D` (dead ball), `X` (abstain). The ranking metric is spellF1, which scores possession spells as intervals.
+`src/baseline.py` is a transparent rule-based baseline. For every frame with a detected ball and at least one tracked player, it assigns possession to the team of the nearest player, then applies a centred majority vote over a configurable time window. It uses tactical ATD tracking and its XML metadata; it does not train a machine-learning model.
 
-## First algorithm version
+The default smoothing half-window is 50 frames (2 seconds at 25 fps on each side). The current implementation outputs `D` if the smoothing window contains no H/A vote. This is a convenience fallback for missing evidence, not a reliable detector of an actual dead-ball interval; see [GOAT.md](GOAT.md).
 
-`src/baseline.py` is a transparent nearest-player plus temporal-smoothing baseline. It uses only Python's standard library and writes `outputs/GOAT.csv`. Read [`docs/algorithm_guide.md`](docs/algorithm_guide.md) for the concepts and limitations. The script has not yet been executed because the configured Python launcher points to a missing interpreter.
+## Reproduce locally
 
-Open [`visualizer/index.html`](visualizer/index.html) in a browser, choose the tactical ATD XML and TXT files, then click **Analyze tracking** to see the baseline timeline and pitch positions. Loading the 196 MB tracking text may take a little while.
+Use Python 3.10 or later; the generator uses only the standard library. Keep the competition data in the location allowed by the organizer's terms and do not commit it. From this repository root, run:
 
-## Documents
+```powershell
+python src/baseline.py --data-dir "E:\Download\Hackathon" --window 50 --out outputs\GOAT.csv
+```
 
-See [`docs/README.md`](docs/README.md) for the full document index. The project scope and implementation plan are the starting point; the technical report remains a template until the algorithm and experiments are complete.
+The output folder is intentionally Git-ignored. The visualizer is a separate local browser tool in `visualizer/index.html`; it reads selected files locally and is for inspection, not the competition deliverable.
 
-## Data status
+## Status and limitations
 
-Data files were found on the drive on November 14, 2026. The files are flat in the parent directory and the video filenames include `-001`; official loaders expect a structured layout and canonical names. See the resource inventory before configuring code. No assets were moved or duplicated during setup.
+The team generated `outputs/GOAT.csv` locally and reported that the official format validator accepted it (199,319 frames, indices 0–199,318). This confirms format only, not prediction quality. No performance score against public ground truth is claimed. The method can misassign loose balls, duels, and tracking gaps; the technical report records these limitations and the exact reproduction details.
 
-## Licensing
-
-Original project code is licensed under MIT; the competition assets are excluded and remain governed by the enrollment terms. See [LICENSE](LICENSE), [third-party notices](THIRD_PARTY_NOTICES.md), and [licensing notes](docs/licensing.md).
-
-## Official references
-
-- https://github.com/metrica-sports/more-than-a-hack-2027
-- https://github.com/metrica-sports/more-than-a-hack-2027/blob/main/DATA.md
-- https://github.com/metrica-sports/more-than-a-hack-2027/blob/main/RULES.md
-- https://github.com/metrica-sports/more-than-a-hack-2027/blob/main/EVALUATION.md
-- https://github.com/metrica-sports/more-than-a-hack-2027/blob/main/SUBMISSION.md
-
-
+See [docs/submission_checklist.md](docs/submission_checklist.md) for final packaging checks.

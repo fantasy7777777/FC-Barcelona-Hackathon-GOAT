@@ -1,8 +1,8 @@
 # Project scope — More Than A Hack 2027, Phase 1
 
 **Team:** GOAT
-**Status:** Planning / data workspace prepared  
-**As of:** 2026-11-14  
+**Status:** Baseline generated and format-validated locally; submission package still needs final confirmation
+**As of:** 2026-11-17
 **Target submission deadline:** 2026-11-17 (the announcement shared with the team states 11:59 PM CET; confirm the official submission email/form)
 
 ## Objective
@@ -13,7 +13,7 @@ Build a reproducible algorithm that produces a possession label for each of the 
 
 - Set up the official starter/scoring code and document its version.
 - Map the supplied assets to the official loaders without changing or duplicating the original media unnecessarily.
-- Reproduce a reference baseline and validate the pipeline using the public five-minute sample only as a pipeline check.
+- Generate the nearest-player baseline and validate the CSV format. Do not tune against the public five-minute labels.
 - Develop and compare a small number of algorithmic approaches using permitted signals such as ATD, Smart Tagging, and tactical video.
 - Produce the full-length `frame,label` CSV (`H`, `A`, `D`, or `X`).
 - Validate the exact submission file with the official validator.
@@ -49,7 +49,7 @@ Build a reproducible algorithm that produces a possession label for each of the 
 - Official data terms accepted during enrollment govern handling and redistribution.
 - Data files currently sit flat in the parent `E:\Download\Hackathon` directory. Current MP4 names use `-001` suffixes, while official tooling documents the names without that suffix.
 - The portable drive must remain connected for any process that reads source data from it.
-- Current time is November 14, leaving a short window before the announced November 17 deadline.
+- Current date is November 17, the announced deadline date. Confirm the organizer’s time zone and form status; the shared announcement said 11:59 PM CET.
 
 ## Risks and responses
 

@@ -7,14 +7,13 @@
 - [ ] Organizer confirmation / follow-up received and saved.
 
 ## Submission package
-- [ ] CSV has header `frame,label` and exactly 199,319 rows.
-- [ ] Frame column is `0..199318`, ordered with no gaps or duplicates.
-- [ ] Labels are only `H`, `A`, `D`, `X`; no blank cells.
-- [ ] Official validator passes on the exact final CSV.
+- [x] User reports the generated CSV has header `frame,label`, 199,319 rows, and frames `0..199318` in order.
+- [x] User reports the official validator accepts the generated CSV and its labels are in the allowed set. This is a format check only.
+- [ ] Confirm the locally saved CSV is the exact final file to submit (we did not inspect the restricted CSV).
 - [ ] Public code repository regenerates the exact submission.
 - [ ] Restricted data and reconstructive exports are excluded from the public repo.
-- [ ] Technical report completed and names all assets and training datasets.
+- [x] Team-named technical report completed at `GOAT.md`; verify any final method change is reflected before upload.
 - [ ] CSV and report use the team name in their filenames.
 - [ ] Submission form received from organizers and one response submitted for the team.
 
-Submission deadline: November 17, 2026. The organizer announcement specified 11:59 PM CET; follow the official form/email for final details.
+Submission deadline: November 17, 2026 at 11:59 PM CET according to the shared organizer announcement (November 18 at 6:59 AM Perth time). Follow any newer organizer email/form instructions.
